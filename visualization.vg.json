@@ -1,0 +1,130 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "background": "white",
+  "padding": 5,
+  "width": 800,
+  "height": 400,
+  "title": {"text": "Forest Area of Countries 2020", "frame": "group"},
+  "data": [
+    {
+      "name": "source_0",
+      "url": "https://raw.githubusercontent.com/TeoJieRu/32690185_week9_homework/main/ne_110m_ocean.topojson",
+      "format": {"type": "topojson", "feature": "oceans"}
+    },
+    {
+      "name": "source_1",
+      "url": "https://raw.githubusercontent.com/TeoJieRu/32690185_week9_homework/main/ne_110m.topojson",
+      "format": {"type": "topojson", "feature": "ne_110m_graticules_30"}
+    },
+    {
+      "name": "source_3",
+      "url": "https://raw.githubusercontent.com/TeoJieRu/32690185_week9_homework/main/Forest_Data.csv",
+      "format": {"type": "csv", "delimiter": ","}
+    },
+    {
+      "name": "source_2",
+      "url": "https://raw.githubusercontent.com/TeoJieRu/32690185_week9_homework/main/ne_110m.topojson",
+      "format": {
+        "type": "topojson",
+        "feature": "ne_110m_admin_0_countries",
+        "parse": {}
+      },
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "datum[\"properties\"] && datum[\"properties\"][\"NAME\"]",
+          "as": "properties.NAME"
+        },
+        {
+          "type": "lookup",
+          "from": "source_3",
+          "key": "Country",
+          "fields": ["properties.NAME"],
+          "values": ["Area 2020(km2)"]
+        }
+      ]
+    }
+  ],
+  "projections": [
+    {
+      "name": "projection",
+      "size": {"signal": "[width, height]"},
+      "fit": {
+        "signal": "[data('source_0'), data('source_1'), data('source_2')]"
+      },
+      "type": "equalEarth"
+    }
+  ],
+  "marks": [
+    {
+      "name": "layer_0_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": {"data": "source_0"},
+      "encode": {
+        "update": {
+          "fill": {"value": "lightskyblue"},
+          "ariaRoleDescription": {"value": "geoshape"}
+        }
+      },
+      "transform": [{"type": "geoshape", "projection": "projection"}]
+    },
+    {
+      "name": "layer_1_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": {"data": "source_1"},
+      "encode": {
+        "update": {
+          "fill": {"value": null},
+          "stroke": {"value": "lightgrey"},
+          "strokeWidth": {"value": 1},
+          "ariaRoleDescription": {"value": "geoshape"}
+        }
+      },
+      "transform": [{"type": "geoshape", "projection": "projection"}]
+    },
+    {
+      "name": "layer_2_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": {"data": "source_2"},
+      "encode": {
+        "update": {
+          "stroke": {"value": "grey"},
+          "strokeWidth": {"value": 0.5},
+          "fill": [
+            {"test": "datum['Area 2020(km2)'] === null ", "value": "lightgrey"},
+            {"scale": "color", "field": "Area 2020(km2)"}
+          ],
+          "tooltip": {
+            "signal": "{\"Country\": isValid(datum[\"properties.NAME\"]) ? datum[\"properties.NAME\"] : \"\"+datum[\"properties.NAME\"], \"Area 2020(km2)\": format(datum[\"Area 2020(km2)\"], \"\")}"
+          },
+          "ariaRoleDescription": {"value": "geoshape"},
+          "description": {
+            "signal": "\"Area 2020(km2): \" + (format(datum[\"Area 2020(km2)\"], \"\")) + \"; Country: \" + (isValid(datum[\"properties.NAME\"]) ? datum[\"properties.NAME\"] : \"\"+datum[\"properties.NAME\"])"
+          }
+        }
+      },
+      "transform": [{"type": "geoshape", "projection": "projection"}]
+    }
+  ],
+  "scales": [
+    {
+      "name": "color",
+      "type": "linear",
+      "domain": {"data": "source_2", "field": "Area 2020(km2)"},
+      "range": "heatmap",
+      "interpolate": "hcl",
+      "zero": false
+    }
+  ],
+  "legends": [
+    {
+      "fill": "color",
+      "gradientLength": {"signal": "clamp(height, 64, 200)"},
+      "title": "Area 2020(km2)"
+    }
+  ],
+  "config": {}
+}
